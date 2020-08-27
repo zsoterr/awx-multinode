@@ -1,0 +1,57 @@
+---
+- name: Install EPEL repo
+  yum:
+    name: https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
+    disablerepo: "*"
+    disable_gpg_check: yes
+    state: present
+  when: ansible_distribution_major_version == "7"
+
+- name: Add RabbitMQ repo
+  yum_repository:
+    name: rabbitmq
+    description: Official rabbitmq repo, v3.6 
+    file: external_repos
+    baseurl: https://dl.bintray.com/rabbitmq/rpm/rabbitmq-server/v3.6.x/el/7/ 
+    gpgcheck: no 
+    enabled: yes
+    state: present
+  when: ansible_distribution_major_version == "7"
+
+- name: Install RabbitMQ server
+  yum:
+    name: rabbitmq-server-3.6.16
+    state: present
+
+- name: Update the RabbitMQ cookie
+  template:
+    src: erlang.cookie.j2
+    dest: /var/lib/rabbitmq/.erlang.cookie
+    mode: 0600
+    owner: 'rabbitmq'
+    group: 'rabbitmq'
+
+- name: Enable RabbitMQ server
+  systemd:
+    name: rabbitmq-server.service
+    state: started
+    enabled: yes
+
+- name: Update the firewall rules
+  firewalld:
+    port: "{{ item }}"
+    permanent: yes
+    state: enabled
+  with_items: "{{ enable_port }}"
+  register: apply_fw_rules
+  when: fw_rules | bool
+  tags: fw_rules
+
+- name: Restart the firewalld daemon
+  service:
+    name: firewalld.service
+    state: restarted
+  when:
+    - apply_fw_rules is changed
+    - fw_rules | bool
+  tags: fw_rules

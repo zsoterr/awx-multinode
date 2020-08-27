@@ -1,0 +1,8 @@
+[all]
+
+[awx_instance_group_web]
+$NodeName1
+
+[awx_instance_group_task]
+$NodeName1
+$NodeName2

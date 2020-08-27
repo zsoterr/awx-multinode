@@ -1,0 +1,4 @@
+KeepAlive yes
+Host $PutHereHostNameOfYourInternalGitRepostirory
+  Port 22
+  ProxyCommand /usr/local/bin/corkscrew $PutHereProxyIP 80 %h %p

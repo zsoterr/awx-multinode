@@ -1,0 +1,15 @@
+FROM ansible/awx_web:{{ awx_task_tag }} 
+USER root
+ADD launch_awx.sh /usr/bin/launch_awx.sh
+ADD launch_awx_task.sh /usr/bin/launch_awx_task.sh
+ADD settings.py /etc/tower/settings.py
+COPY nginx.conf /etc/nginx/nginx.conf
+RUN yum check-update;yum install -y ansible-2.9.11-1.el8;yum clean all
+COPY ldap.conf /etc/openldap/ldap.conf
+COPY Internal_Root_CA_1.pem /etc/openldap/certs/Internal_Root_CA_1.pem
+ADD certinstall.sh /usr/bin/certinstall.sh
+RUN chmod +rx /usr/bin/certinstall.sh
+RUN /usr/bin/certinstall.sh
+RUN chmod +rx /usr/bin/launch_awx.sh && \
+    chmod +rx /usr/bin/launch_awx_task.sh
+USER 1000
