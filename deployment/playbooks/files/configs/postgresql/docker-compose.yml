@@ -1,0 +1,14 @@
+version: '2'
+services:
+  postgres:
+    image: postgres:10
+    restart: unless-stopped
+    volumes:
+      - /srv/awx/pgdocker:/var/lib/postgresql/data:Z
+    environment:
+      POSTGRES_USER: awx
+      POSTGRES_PASSWORD: $dbuserpassword
+      POSTGRES_DB: awx
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"

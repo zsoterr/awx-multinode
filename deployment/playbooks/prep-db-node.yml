@@ -1,0 +1,57 @@
+---
+- hosts: "dbservers"
+  user: defaultuser 
+  become: yes
+  tasks:
+
+  - name: Download git repository 
+    git:
+      repo: 'https://github.com/defaultuser/database-clustering.git'
+      dest: /srv/awx/deployment/db
+      force: yes
+
+  - name: "Copy environment file for database instance"
+    copy:
+      src: files/db/.env
+      dest: /srv/awx/deployment/db/using-one-docker-node/master/.env 
+      owner: root
+      group: root
+      mode: u=rw,g=r,o=r
+      backup: yes
+
+  - name: "Installing necessary packages."
+    yum:
+      name: "{{ packages }}"
+    vars:
+      packages:
+        - ansible
+        - python-pip
+
+  - name: "Installing necessary packages using pip"
+    pip:
+      name: docker-py
+
+  - name: "Build a database image on database node(s)" 
+    docker_image:
+      path: /srv/awx/deployment/db/using-one-docker-node/master
+      name: awx-v9-psql-v10-master 
+      tag: 1
+      push: no
+
+
+
+  - name: "Start db container using docker compose file." 
+    shell:
+      cmd: "/usr/local/bin/docker-compose --compatibility up -d"
+      chdir: /srv/awx/deployment/db/using-one-docker-node/master 
+       
+  - name: "Wait for db services to start"
+    pause: minutes=1
+
+  - name: "Check if status of psql server is ready."
+    shell: "netstat -tulpn | grep 5432" 
+    register: psqlstatus
+
+  - name: "Status of psql server's port."
+    debug:
+      msg: "The database port is {{ psqlstatus }} on database node."

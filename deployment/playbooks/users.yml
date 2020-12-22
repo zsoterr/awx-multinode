@@ -1,0 +1,42 @@
+---
+- hosts: "allnodes"
+  gather_facts: no
+  user: defaultuser 
+  become: yes
+  vars:
+    newusers:
+    - "sshawx"
+    existusers:
+    - "sshawx"
+    - "defaultuser"
+  tasks:
+  - name: "Create group"
+    group:
+      name: admin
+      state: present
+
+  - name: "Create user accounts"
+    user:
+      name: "{{ item }}"
+      groups: "admin"
+    with_items: "{{ newusers }}"
+
+  - name: "Add authorized keys"
+    authorized_key:
+      user: "{{ item }}"
+      key: "{{ lookup('file', 'files/userskeys/'+ item + '.key.pub') }}"
+    with_items: "{{ newusers }}"
+
+  - name: "Allow admin users to sudo without a password"
+    lineinfile:
+      dest: "/etc/sudoers" # path: in version 2.3
+      state: "present"
+      regexp: "^%admin"
+      line: "%admin ALL=(ALL) NOPASSWD: ALL"
+
+  - name: "Add users to additional groups"
+    user:
+      name: "{{ item }}"
+      groups: "docker,wheel"
+      append: yes
+    with_items: "{{ existusers }}"

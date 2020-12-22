@@ -1,0 +1,84 @@
+---
+- hosts: "allnodes"
+  gather_facts: no
+  user: defaultuser 
+  become: yes
+  tasks:
+
+  - name: yum check-update
+    shell: 'yum check-update || test $? -eq 100'
+
+  - name: "Installing Docker Prerequisite packages"
+    yum:
+      name: "{{ packages }}"
+    vars:
+      packages:
+        - yum-utils
+        - device-mapper-persistent-data
+        - lvm2
+      state: present
+
+  - name: "Installing additional packages,like git,mc,etc"
+    yum:
+      name: "{{ packages }}"
+    vars:
+      packages:
+        - git
+        - mc 
+      state: present
+
+  - name: "Configuring docker-ce repo"
+    get_url:
+      url: https://download.docker.com/linux/centos/docker-ce.repo
+      dest: /etc/yum.repos.d/docker-ce.repo
+      mode: 0644
+
+  - name: "Installing Docker latest version"
+    yum:
+      name: docker-ce
+      state: present
+
+  - name: " Starting and Enabling Docker service"
+    service:
+      name: docker
+      state: started
+      enabled: yes
+
+  - name: "Copy configuration file for docker"
+    tags: docker
+    copy:
+      src: files/docker/daemon.json
+      dest: /etc/docker/daemon.json
+      owner: root
+      group: root
+      mode: u=rw,g=r,o=r
+      backup: yes
+    notify:
+    - restart docker
+
+  - name: clean yum cache
+    shell: 'yum clean all'
+
+   
+  - name: "Enable SELinux, basically, should be working with enforcing mode"
+    selinux:
+      policy: targeted
+      state: enforcing
+
+  - name: "Install docker-compose"
+    get_url:
+      url: https://github.com/docker/compose/releases/download/1.27.4/docker-compose-Linux-x86_64 
+      dest: /usr/local/bin/docker-compose
+      mode: 'u+x,g+x,o+x'
+
+  - name: Enable firewalld
+    service: name=firewalld state=started enabled=yes
+
+  - name: Set public as default policy
+    command: firewall-cmd --set-default-zone=public 
+
+  handlers:
+    - name: "restart docker"
+      service:
+        name=docker
+        state=restarted
