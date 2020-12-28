@@ -6,7 +6,7 @@
 
   - name: Download git repository 
     git:
-      repo: 'https://github.com/defaultuser/database-clustering.git'
+      repo: 'https://github.com/zsoterr/database-clustering.git'
       dest: /srv/awx/deployment/db
       force: yes
 
