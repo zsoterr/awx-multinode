@@ -89,11 +89,11 @@ DOCKER NODE:
 You can use a prepared docker image - as docker-node, with pre-installed necessary packages -  or, you can use different image/different server for this purpose.
 Note: keep in your mind if I validated everything on Centos v7. I've already mentioned this fact, but it's a really important thing/fact.
 Firewall: Basically, you don't have to stop and disable firewalld but sometimes useful.
-SeLinux: I've validated this awx deployment using "enforced" SELINUX policy but, - if you want - you can disable selinuxi, via configuraton file:  /etc/selinux/config and restart the docker node before you start the deployment.
+SeLinux: I've validated this awx deployment using "enforced" SELINUX policy but, - if you want - you can disable selinux, via configuraton file:  /etc/selinux/config and restart the docker node before you start the deployment.
 User account:
-I've created an user for myself - on all affected docker-node - and I've published my ssh public key to all docker-node. You can do this also. It's very convinient due to the fact if we don't have to type our passwords,regularly....
-The deplyoment will create a technical user (sshawx user) on all nodes. The public key of sshawx user will be deployed on docker-node,too. 
-Meanwhile the deployment we will change you sshd configuration: this parameter will be set to "yes":  PubkeyAuthentication, here: /etc/ssh/sshd_config - on affected docker-node(s).
+I've created a dedicated user for me - on all affected docker-node(s) - and I've published my ssh public key on docker-node(s). You can do this also. It's very convinient due to the fact if you don't have to type our passwords,regularly....
+The deplyoment will create a technical user (sshawx user) on all nodes. The public key of sshawx user will be deployed on docker-node(s),too. 
+Meanwhile the deployment we will change your sshd configuration: this parameter will be set to "yes":  PubkeyAuthentication, here: /etc/ssh/sshd_config - on affected docker-node(s).
 SSHAWX user: if you want to use this technical user, you must generate and place the user public key, here: .../deployment/playbooks/files/userskeys/
 
 
