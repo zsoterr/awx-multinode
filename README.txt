@@ -98,7 +98,7 @@ SSHAWX user: if you want to use this technical user, you must generate and place
 
 
 DEDICATED network for docker daemon:
-There is a chance if you will have a conflict - regarding exist networks - within your infrastructure so if you would like to avoid this, you haveto set a dedicated network for docker daemon - before the deployment: you can control this, using a docker configuration file:  have a look a prepared configuration file - which will be deployed! -, here: 
+There is a chance if you will have a conflict - regarding exist networks - within your infrastructure so if you would like to avoid this, you haveto set a dedicated network for docker daemon - before the deployment: you can control this, using a docker configuration file:  have a look a prepared configuration file - which will be deployed! -, here: .../deployment/playbooks/files/docker/daemon.json
  
  
 II. INSTALL:
