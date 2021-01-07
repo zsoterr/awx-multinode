@@ -1,5 +1,5 @@
 {
   "default-address-pools":
   [    {"base":"10.10.0.0/16","size":24}  ],
-  { "insecure-registries":["PutHereYourDockerRegistry:5000"] }
+  "insecure-registries":["PutHereYourDockerRegistry:5000"]
 }
