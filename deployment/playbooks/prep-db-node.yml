@@ -3,6 +3,9 @@
   user: defaultuser 
   become: yes
   tasks:
+  - name: "Update yum repositories"
+    yum:
+      update_cache: no
 
   - name: Download git repository 
     git:

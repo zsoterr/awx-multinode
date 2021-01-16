@@ -4,9 +4,12 @@
   user: defaultuser 
   become: yes
   tasks:
+  - name: "Update yum repositories"
+    yum:
+      update_cache: yes
 
-  - name: yum check-update
-    shell: 'yum check-update || test $? -eq 100'
+#  - name: yum check-update
+#    shell: 'yum check-update || test $? -eq 100'
 
   - name: "Installing Docker Prerequisite packages"
     yum:
