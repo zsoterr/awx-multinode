@@ -57,7 +57,7 @@
       mode: u=rw,g=r,o=r
       backup: yes
     notify:
-    - restart docker
+    - restart docker daemon
 
 #  - name: clean yum cache
 #    shell: 'yum clean all'
