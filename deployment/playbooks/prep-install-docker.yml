@@ -86,7 +86,7 @@
 
   - name: "Set public as firewall default policy"
     command: firewall-cmd --set-default-zone=public
-    when: zonefirewalld.exists
+    when: not zonefirewalld
 
   handlers:
     - name: "restart docker daemon"
