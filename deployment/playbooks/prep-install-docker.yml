@@ -1,7 +1,7 @@
 ---
 - hosts: "allnodes"
   gather_facts: no
-  user: defaultuser 
+  user: defaultuser
   become: yes
   tasks:
   - name: "Update yum repositories"
@@ -27,7 +27,7 @@
     vars:
       packages:
         - git
-        - mc 
+        - mc
       state: present
 
   - name: "Configuring docker-ce repo"
@@ -59,10 +59,9 @@
     notify:
     - restart docker
 
-  - name: clean yum cache
-    shell: 'yum clean all'
+#  - name: clean yum cache
+#    shell: 'yum clean all'
 
-   
   - name: "Enable SELinux, basically, should be working with enforcing mode"
     selinux:
       policy: targeted
@@ -70,18 +69,27 @@
 
   - name: "Install docker-compose"
     get_url:
-      url: https://github.com/docker/compose/releases/download/1.27.4/docker-compose-Linux-x86_64 
+      url: https://github.com/docker/compose/releases/download/1.27.4/docker-compose-Linux-x86_64
       dest: /usr/local/bin/docker-compose
       mode: 'u+x,g+x,o+x'
 
-  - name: Enable firewalld
+  - name: "Enable firewalld"
     service: name=firewalld state=started enabled=yes
 
-  - name: Set public as default policy
-    command: firewall-cmd --set-default-zone=public 
+  - name: "check the default policy of firewalld"
+    firewalld:
+      zone: trusted
+      interface: enp0s3
+      permanent: true
+      state: enabled
+    register: zonefirewalld
+
+  - name: "Set public as firewall default policy"
+    command: firewall-cmd --set-default-zone=public
+    when: zonefirewalld.exists
 
   handlers:
-    - name: "restart docker"
+    - name: "restart docker daemon"
       service:
         name=docker
         state=restarted

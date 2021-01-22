@@ -1,6 +1,6 @@
 ---
 - hosts: "awxnodes"
-  user: defaultuser 
+  user: defaultuser
   become: yes
   tasks:
   - name: "Update yum repositories"
@@ -11,7 +11,7 @@
     file:
       path: "{{ item }}"
       state: directory
-      owner: root 
+      owner: root
       group: admin
       mode: 0775
     loop:
@@ -38,7 +38,7 @@
       packages:
         - gcc
         - git
-        - curl 
+        - curl
         - gcc-c++
         - nodejs
         - gettext
@@ -60,7 +60,7 @@
       name: cryptography
       state: forcereinstall
 
-  - name: Copy some files which needed to build images 
+  - name: Copy some files which needed to build images
     copy:
       src: "{{ item }}"
       dest: /srv/awx/build_image
@@ -101,7 +101,7 @@
       owner: root
       group: root
 
-  - name: "Remove python library" 
+  - name: "Remove python library"
     pip:
      name: docker,docker-py
      state: absent
@@ -127,6 +127,6 @@
 
   handlers:
     - name: "reload sshd"
-      service: 
-        name=sshd 
+      service:
+        name=sshd
         state=reloaded
