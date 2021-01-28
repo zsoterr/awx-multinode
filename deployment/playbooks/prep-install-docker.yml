@@ -21,13 +21,13 @@
         - lvm2
       state: present
 
-  - name: "Installing additional packages,like git,mc,etc"
+  - name: "Installing additional package(s): git"
     yum:
       name: "{{ packages }}"
     vars:
       packages:
         - git
-        - mc
+#        - mc
       state: present
 
   - name: "Configuring docker-ce repo"
@@ -35,6 +35,10 @@
       url: https://download.docker.com/linux/centos/docker-ce.repo
       dest: /etc/yum.repos.d/docker-ce.repo
       mode: 0644
+      backup: yes
+      force: no
+      timeout: 10
+
 
   - name: "Installing Docker latest version"
     yum:
@@ -56,6 +60,7 @@
       group: root
       mode: u=rw,g=r,o=r
       backup: yes
+      force: yes
     notify:
     - restart docker daemon
 
@@ -72,6 +77,10 @@
       url: https://github.com/docker/compose/releases/download/1.27.4/docker-compose-Linux-x86_64
       dest: /usr/local/bin/docker-compose
       mode: 'u+x,g+x,o+x'
+      backup: yes
+      force: no
+      timeout: 10
+
 
   - name: "Enable firewalld"
     service: name=firewalld state=started enabled=yes
@@ -79,7 +88,6 @@
   - name: "check the default policy of firewalld"
     firewalld:
       zone: trusted
-      interface: enp0s3
       permanent: true
       state: enabled
     register: zonefirewalld
