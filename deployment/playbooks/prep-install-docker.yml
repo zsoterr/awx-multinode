@@ -1,6 +1,6 @@
 ---
 - hosts: "allnodes"
-  gather_facts: no
+  gather_facts: yes 
   user: defaultuser
   become: yes
   tasks:
