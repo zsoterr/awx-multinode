@@ -1,16 +1,20 @@
 ---
 - hosts: "dbservers"
+  gather_facts: yes
   user: defaultuser
   become: yes
   tasks:
-  - name: "Update yum repositories"
-    yum:
-      update_cache: no
+# not required: previous task already updated that
+#- name: "Update yum repositories"
+#    yum:
+#      update_cache: yes
 
-  - name: Download git repository
+  - name: "Download git repository"
     git:
       repo: 'https://github.com/zsoterr/database-clustering.git'
       dest: /srv/awx/deployment/db
+      clone: no
+      update: no
       force: yes
       version: master
 
@@ -21,6 +25,7 @@
       owner: root
       group: root
       mode: u=rw,g=r,o=r
+      force: yes
       backup: yes
 
   - name: "Installing necessary packages."
@@ -30,48 +35,68 @@
       packages:
         - ansible
         - python-pip
+      state: present
 
-  - name: "Installing necessary packages using pip"
+  - name: "Uninstall pip packages (requirement)."
     pip:
-      name: docker-py
+      name:
+      - docker
+      - docker-py
+      - docker-compose
+      state: absent
+    tags: uninst
 
-  - name: "Build a database image on database node(s)"
+  - name: "(Re)Installing necessary packages -using pip"
+    pip:
+      name:
+      - docker
+      - docker-compose
+      state: present
+    tags: inst
+
+  - name: "Get infos on postgresql container: exists or it does not exist ?"
+    docker_container_info:
+       name: awx-postgres
+    register: dbcontainer
+    tags: dbcont
+
+  - name: "Does container exist?"
+    debug:
+      msg: "The container {{ 'exists' if dbcontainer.exists else 'does not exist' }}"
+
+  - name: "Print the status of the container -if exists"
+    debug:
+      msg: "The container status is {{ dbcontainer.container['State']['Status'] }}"
+    when: dbcontainer.exists
+
+  - name: "Build a database image on database node(s) -if doesn't exist."
     docker_image:
       path: /srv/awx/deployment/db/using-one-docker-node/master
       name: awx-v9-psql-v10-master
       tag: 1
       push: no
+      state: present
+    tags:
+    - db
 
-  - name: Get infos on container
-    docker_container_info:
-       name: awx-postgres
-    register: dbcontainer
 
-  - name: Does container exist?
-    debug:
-      msg: "The container {{ 'exists' if dbcontainer.exists else 'does not exist' }}"
-
-  - name: Print the status of the container
-    debug:
-      msg: "The container status is {{ dbcontainer.container['State']['Status'] }}"
-    when: dbcontainer.exists
-
-  - name: "Start db container using docker compose file."
+  - name: "Start postgresql database container, using docker compose file -if isn't running."
     command:
       cmd: "/usr/local/bin/docker-compose --compatibility up -d"
       chdir: /srv/awx/deployment/db/using-one-docker-node/master
     when: not dbcontainer.exists
 
   - name: "Wait for db services to start"
-    pause: minutes=1
+    pause: seconds=30
+    when: not dbcontainer.exists
 
-  - name: "Check if status of psql server is ready."
-    command:
-      cmd: "netstat -tulpn | grep 5432"
-    register: psqlstatus
-    when: dbcontainer.exists
+  - name: "Check, port of psql container is listening or not."
+    shell:  set -o pipefail && \
+              netstat -tulpn | grep 5432
+    register: psqlportstatus
+    changed_when: not dbcontainer.exists
 
   - name: "Status of psql server's port."
     debug:
-      msg: "The database port is {{ psqlstatus }} on database node."
+      msg: "The database port is {{ psqlportstatus.stdout }} on database node."
     when: dbcontainer.exists
