@@ -3,11 +3,12 @@
   user: defaultuser
   become: yes
   tasks:
-  - name: "Update yum repositories"
-    yum:
-      update_cache: no
+# not required: previous task already updated that
+#  - name: "Update yum repositories"
+#    yum:
+#      update_cache: no
 
-  - name: "Create the nececssary folders"
+  - name: "Create nececssary folders."
     file:
       path: "{{ item }}"
       state: directory
@@ -21,7 +22,7 @@
       - /srv/awx/pass2awx/configs
       - /srv/awx/pass2awx/certs
 
-  - name: "Uncomment/Enable public key authentication via ssh"
+  - name: "Uncomment/Enable public key authentication via ssh."
     replace:
       path: /etc/ssh/sshd_config
       regexp: '#PubkeyAuthentication yes'
@@ -31,86 +32,90 @@
     notify:
     - reload sshd
 
-  - name: "Installing necessary packages."
+  - name: "Install necessary packages."
     yum:
       name: "{{ packages }}"
     vars:
       packages:
         - gcc
         - git
-        - curl
+#        - curl
         - gcc-c++
         - nodejs
         - gettext
         - device-mapper-persistent-data
         - lvm2
         - bzip2
-        - python3-pip
-        - yum-utils
-        - ansible
+#        - python3-pip
+#        - yum-utils
+#        - ansible
         - python-pip
-        - telnet
+#        - telnet
+      state: present
 
-  - name: "Installing necessary packages using pip"
+
+  - name: "Install necessary packages, using pip."
     pip:
       name: docker-py,bcrypt==3.1.7,pyOpenSSL
+      state: present
 
-  - name: "Reinstalling a python library"
+  - name: "(Re)install a python library."
     pip:
       name: cryptography
       state: forcereinstall
 
-  - name: Copy some files which needed to build images
+  - name: "Copy some files which needed to build images."
     copy:
       src: "{{ item }}"
       dest: /srv/awx/build_image
       owner: root
       group: root
       mode: 0755
+      force: yes
     with_items:
       - awx/ansible-2.9.15-1.el8.noarch.rpm
       - awx/Internal_Root_CA_1.pem
       - awx/certinstall.sh
 
-  - name: Ensure if local directory exists for self-signed web server certs.
+  - name: "Ensure if local directory exists, requirement for self-signed web server certs."
     file:
       path: /srv/awx/pass2awx/certs/
       state: directory
 
-  - name: Generate a private key.
+  - name: "Generate a private key."
     openssl_privatekey:
       path: /srv/awx/pass2awx/certs/awxweb.key
 
-  - name: Generate a CSR.
+  - name: "Generate a CSR."
     openssl_csr:
       path: /srv/awx/pass2awx/certs/awxweb.csr
       privatekey_path: /srv/awx/pass2awx/certs/awxweb.key
       common_name: "awxweb"
 
-  - name: Generate a Self Signed web server certificate.
+  - name: "Generate a Self Signed web server certificate."
     openssl_certificate:
       path: /srv/awx/pass2awx/certs//awxweb.crt
       privatekey_path: /srv/awx/pass2awx/certs/awxweb.key
       csr_path: /srv/awx/pass2awx/certs/awxweb.csr
       provider: selfsigned
 
-  - name: Copy files and directories from files directory
+  - name: "Copy files and directories from files directory."
     copy:
       src: configs
       dest: /srv/awx/pass2awx
       owner: root
       group: root
 
-  - name: "Remove python library"
+  - name: "Remove python libraries."
     pip:
      name: docker,docker-py
      state: absent
 
-  - name: "Installing necessary packages using pip"
+  - name: "(Re)Install a necessary package, using pip."
     pip:
      name: docker-py
 
-  - name: Pre-Download awx officialy images for deployment.
+  - name: "Pre-Download awx officialy images for deployment."
     docker_image:
      name: "{{ item.name }}"
      tag: "{{ item.version }}"
@@ -120,7 +125,7 @@
       - { name: memcached, version: alpine }
     tags: predownloadimages
 
-  - name: "Remove python library"
+  - name: "Remove a python library."
     pip:
      name: docker-py
      state: absent
