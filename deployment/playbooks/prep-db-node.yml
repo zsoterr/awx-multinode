@@ -13,7 +13,6 @@
     git:
       repo: 'https://github.com/zsoterr/database-clustering.git'
       dest: /srv/awx/deployment/db
-      clone: no
       update: no
       force: yes
       version: master
