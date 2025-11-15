@@ -1,5 +1,7 @@
+# This repository is archived and not actively maintained. The content may still be useful as a reference
+
 --------------------------------
-AWX v9 multi node enviroment
+# AWX v9 multi node enviroment
 --------------------------------
 
 This project contains every fundamental deployment-plans for AWX v9 -based on multi node environment.
